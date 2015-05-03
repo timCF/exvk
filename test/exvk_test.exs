@@ -12,6 +12,7 @@ defmodule ExvkTest do
 
   test "groups" do
   	assert (Exvk.Groups.getMembers(11632794) |> IO.inspect |> length) > 13000
+  	assert :error == Exvk.Groups.get(1003) |> IO.inspect |> elem(0) # need token here!!!
   end
 
 end

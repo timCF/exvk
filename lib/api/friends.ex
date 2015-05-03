@@ -2,6 +2,7 @@ defmodule Exvk.Friends do
 	use Exvk.HTTP
 
 	def get(uid, token \\ nil) when is_integer(uid) do
+		Exvk.timeout
 		case %{user_id: uid, access_token: token}
 				|> filter_nil
 					|> http_get(["friends.get"]) do

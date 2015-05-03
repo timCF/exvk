@@ -17,19 +17,33 @@ defmodule Exvk.Users do
 	defp get_inner([], _token, res), do: Enum.filter(res, &(&1 != :failed))
 	defp get_inner(users, token, res) do
 		{todo, rest} = Enum.split(users, 1000)
+		Exvk.timeout
 		case %{user_ids: Enum.join(todo, ","), fields: @additional_fields, access_token: token}
 				|> filter_nil
 					|> http_get("users.get") do
 			%{response: lst} when is_list(lst) -> 
-				get_inner(rest, token, Enum.map(lst, &decode_user/1) ++ res)
+				get_inner(rest, token, Enum.map(lst, &(decode_user(&1, token))) ++ res)
 			error -> 
 				Logger.error "#{__MODULE__} : unparsable ans from vk #{inspect error}, ignore"
 				get_inner(rest, token, res)
 		end
 	end
 
-	defp decode_user(map = %{uid: _, first_name: _, last_name: _}), do: map
-	defp decode_user(some) do
+	defp decode_user(map = %{uid: uid, first_name: _, last_name: _}, token) when is_integer(uid) do 
+		Map.put(map, :friends,
+			case Exvk.Friends.get(uid, token) do
+				{:error, error} ->  Logger.error inspect(error)
+									[]
+				friends when is_list(friends) -> friends
+			end)
+		|> Map.put(:groups, 
+			case Exvk.Groups.get(uid, token) do
+				{:error, error} ->  Logger.error inspect(error)
+									[]
+				groups when is_list(groups) -> groups
+			end)
+	end
+	defp decode_user(some, _) do
 		Logger.error "#{__MODULE__} : unexpected user struct #{inspect some}"
 		:failed
 	end
@@ -43,7 +57,7 @@ defmodule Exvk.Users do
 			{:error, error} -> {:error, error}
 			params = %{} -> Map.merge(params, %{offset: 0, count: 1000, access_token: token})
 								|> filter_nil
-									|> search_inner
+									|> search_inner([])
 		end
 	end
 	defp check_params(fields) do
@@ -63,9 +77,17 @@ defmodule Exvk.Users do
 					end
 				end) 
 	end
-	defp search_inner(fields) do
+	defp search_inner(fields, res) do
+		Exvk.timeout
 		case http_get(fields, "users.search") do
-			%{response: [int|rest]} when is_integer(int) -> Stream.map(rest, fn(%{uid: uid}) -> uid end) |> Enum.uniq
+			%{response: []} -> Enum.uniq(res)
+			%{response: [int|rest]} when is_integer(int) -> 
+				uids = Enum.map(rest, fn(%{uid: uid}) -> uid end)
+				case Enum.all?(uids, &(Enum.member?(res, &1))) do
+					true -> Enum.uniq(res)
+					false -> Map.update!(fields, :offset, &(&1+1000))
+							 |> search_inner(uids++res)
+				end
 			error -> {:error, "#{__MODULE__} : unparsable ans from vk #{inspect error}, ignore"}
 		end
 	end

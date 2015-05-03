@@ -16,6 +16,9 @@ defmodule Exvk do
     opts = [strategy: :one_for_one, name: Exvk.Supervisor]
     Supervisor.start_link(children, opts)
   end
+
+  def timeout, do: :timer.sleep(333)
+
 end
 
 defmodule Exvk.HTTP do
