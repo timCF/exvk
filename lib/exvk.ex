@@ -1,11 +1,17 @@
 defmodule Exvk do
   use Application
-
+  use Exvk.Structs
+  use Tinca,	[
+  					:exvk_cities,
+  					:exvk_countries,
+  					:exvk_dicts
+  				]
   # See http://elixir-lang.org/docs/stable/elixir/Application.html
   # for more information on OTP Applications
   def start(_type, _args) do
     import Supervisor.Spec, warn: false
-
+    Tinca.declare_namespaces
+    Tinca.put(0, :updated, :exvk_dicts)
     children = [
       # Define workers and child supervisors to be supervised
       # worker(Exvk.Worker, [arg1, arg2, arg3])
@@ -17,7 +23,10 @@ defmodule Exvk do
     Supervisor.start_link(children, opts)
   end
 
-  def timeout, do: :timer.sleep(333)
+  def timeout do 
+  	Exvk.Dicts.maybe_update
+  	:timer.sleep(333)
+  end
 
 end
 

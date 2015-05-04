@@ -11,4 +11,5 @@
   "jazz": {:git, "git://github.com/meh/jazz.git", "49f335492aca5516495199dd81dd18b845ebaa69", []},
   "maybe": {:git, "git://github.com/timCF/maybe.git", "0c500e3abb3d9b82b65915bf7f388ccf004bb790", []},
   "meck": {:git, "git://github.com/eproxus/meck", "dde759050eff19a1a80fd854d7375174b191665d", [tag: "0.8.2"]},
-  "ssl_verify_hostname": {:hex, :ssl_verify_hostname, "1.0.1"}}
+  "ssl_verify_hostname": {:hex, :ssl_verify_hostname, "1.0.1"},
+  "tinca": {:git, "git://github.com/timCF/tinca.git", "b269d5e248bc070956456e0ff9331fefa73a7b69", []}}

@@ -16,7 +16,10 @@ defmodule Exvk.Mixfile do
                       :logger,
 
                       :maybe,
-                      :httphex
+                      :httphex,
+                      :tinca,
+                      :exutils,
+                      :hashex
                     ],
      mod: {Exvk, []}]
   end
@@ -33,7 +36,10 @@ defmodule Exvk.Mixfile do
   defp deps do
     [
       {:maybe, github: "timCF/maybe"},
-      {:httphex, github: "timCF/httphex"}
+      {:httphex, github: "timCF/httphex"},
+      {:tinca, github: "timCF/tinca"},
+      {:exutils, github: "timCF/exutils"},
+      {:hashex, github: "timCF/hashex"}
     ]
   end
 end

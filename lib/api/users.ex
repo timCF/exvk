@@ -3,7 +3,13 @@ defmodule Exvk.Users do
 	require Logger
 
 	@additional_fields "sex,bdate,city,country,photo_50,photo_100,photo_200_orig,photo_200,photo_400_orig,photo_max,photo_max_orig,photo_id,online,online_mobile,domain,has_mobile,contacts,connections,site,education,universities,schools,can_post,can_see_all_posts,can_see_audio,can_write_private_message,status,last_seen,relation,relatives,counters,screen_name,maiden_name,timezone,occupation,activities,interests,music,movies,tv,books,games,about,quotes,personal,friends_status"
-	
+	@keys %Exvk.User{} |> HashUtils.keys |> Enum.reduce(HashSet.new, &(HashSet.put(&2,&1)))
+	defp make_user_struct(map = %{}) do
+		Map.keys(map) 
+		|> Stream.filter(&(HashSet.member?(@keys,&1)))
+		|> Enum.reduce(%Exvk.User{}, &(Map.put(&2,&1,Map.get(map,&1))))
+	end
+
 	#
 	#	get
 	#
@@ -42,10 +48,97 @@ defmodule Exvk.Users do
 									[]
 				groups when is_list(groups) -> groups
 			end)
+		|> Map.update(:counters, %{}, &vals_to_string/1)
+		|> add_country_and_city
+		|> maybe_update_last_seen
+		|> maybe_update_occupation
+		|> Map.update(:relation, "", &Exvk.Dicts.Relation.get/1)
+		|> Map.update(:relation_partner, %{}, &vals_to_string/1)
+		|> maybe_update_alco_smoke
+		|> maybe_update_political
+		|> maybe_update_personal
+		|> Map.update(:sex, "пол не указан", 
+			fn 
+				1 -> "женский"
+				2 -> "мужской"
+				_ -> "пол не указан"
+			end)
+		|> update_some_maps_to_flat
+		|> make_user_struct
 	end
 	defp decode_user(some, _) do
 		Logger.error "#{__MODULE__} : unexpected user struct #{inspect some}"
 		:failed
+	end
+
+	defp add_country_and_city(map = %{country: country, city: _}) do
+		Map.update!(map, :country, &(Exvk.Dicts.Countries.get(&1)))
+		|> Map.update!(:city, &(Exvk.Dicts.Cities.get(country, &1)))
+	end
+	defp add_country_and_city(map = %{country: _}), do: Map.update!(map, :country, &(Exvk.Dicts.Countries.get(&1)))
+	defp add_country_and_city(some), do: some
+	
+	defp maybe_update_last_seen(map = %{last_seen: %{platform: platform, time: time}}) when (is_integer(platform) and is_integer(time)) do
+		Map.put(map, :last_seen_time, time)	
+		|> Map.put(:last_seen_platform, Exvk.Dicts.Platforms.get(platform))
+	end
+	defp maybe_update_last_seen(some), do: some
+
+	defp maybe_update_occupation(map = %{occupation: %{name: name, type: type}}) when (is_binary(name) and is_binary(type)) do
+		Map.put(map, :occupation_name, name)
+		|> Map.put(:occupation_type, type)
+	end
+	defp maybe_update_occupation(map = %{}), do: map
+
+
+	defp maybe_update_alco_smoke(map = %{personal: personal}) when is_map(personal) do
+		Enum.reduce([:alcohol, :smoking], map,
+			fn(key, res) ->
+				Map.put(res, String.to_atom("personal_#{key}"), Map.get(personal, key) |> Exvk.Dicts.SmokingAlco.get)
+			end)
+	end
+	defp maybe_update_alco_smoke(map), do: map
+	
+	defp maybe_update_political(map = %{personal: %{political: pol}}) when is_integer(pol), do: Map.put(map, :personal_political, Exvk.Dicts.Political.get(pol))
+	defp maybe_update_political(map), do: map
+
+	defp maybe_update_personal(map = %{personal: personal}) when is_map(personal) do
+		Enum.reduce([:inspired_by, :religion], map,
+			fn(key, res) ->
+				case Map.get(personal, key) do
+					some when is_binary(some) -> Map.put(res, String.to_atom("personal_#{key}"), some)
+					_ -> res
+				end
+			end)
+	end
+	defp maybe_update_personal(map), do: map
+
+	
+	defp update_some_maps_to_flat(map = %{}) do
+		Enum.reduce([:relatives, :schools, :universities], map, 
+			fn(key, res) ->
+				case Map.get(res, key) do
+					lst when is_list(lst) -> Map.put(res, key, maybe_make_it_flat(lst))
+					_ -> Map.put(res, key, %{})
+				end
+			end)
+	end
+
+
+	defp vals_to_string(enum), do: Enum.reduce(enum,%{},fn({k,v}, res) -> Map.put(res, k, to_string(v)) end)
+	defp maybe_make_it_flat(lst) when is_list(lst) do
+		case Enum.all?(lst, &is_map/1) do
+			false -> %{}
+			true -> Enum.reduce(0..(length(lst)-1), %{}, 
+						fn(el, res) ->
+							Enum.at(lst, el)
+							|> Enum.reduce(res, 
+								fn({k,v}, res) ->
+									Map.put(res, String.to_atom("#{k}_#{el}"), to_string(v))
+								end)
+						end)
+
+		end
 	end
 
 	#
