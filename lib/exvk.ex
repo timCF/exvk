@@ -43,6 +43,8 @@ defmodule Exvk.HTTP do
       defp filter_nil(map) when is_map(map) do
         HashUtils.filter_v(map, &(&1 != nil))
       end
+      defp get_opts(nil), do: %{}
+      defp get_opts(bin) when is_binary(bin), do: %{opts: [proxy: bin]}
     end
   end
 end

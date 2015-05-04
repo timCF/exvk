@@ -14,24 +14,24 @@ defmodule Exvk.Users do
 	#	get
 	#
 	
-	def get(users, token \\ nil) when is_list(users) do
+	def get(users, token \\ nil, proxy \\ nil) when is_list(users) do
 		case Enum.all?(users, &is_integer/1) do
-			true -> get_inner(users, token, [])
+			true -> get_inner(users, token, [], proxy)
 			false -> {:error, "Expected list of ints, got #{inspect users}"}
 		end
 	end
-	defp get_inner([], _token, res), do: Enum.filter(res, &(&1 != :failed))
-	defp get_inner(users, token, res) do
+	defp get_inner([], _token, res, _proxy), do: Enum.filter(res, &(&1 != :failed))
+	defp get_inner(users, token, res, proxy) do
 		{todo, rest} = Enum.split(users, 1000)
 		Exvk.timeout
 		case %{user_ids: Enum.join(todo, ","), fields: @additional_fields, access_token: token}
 				|> filter_nil
-					|> http_get("users.get") do
+					|> http_get("users.get", get_opts(proxy)) do
 			%{response: lst} when is_list(lst) -> 
-				get_inner(rest, token, Enum.map(lst, &(decode_user(&1, token))) ++ res)
+				get_inner(rest, token, Enum.map(lst, &(decode_user(&1, token))) ++ res, proxy)
 			error -> 
 				Logger.error "#{__MODULE__} : unparsable ans from vk #{inspect error}, ignore"
-				get_inner(rest, token, res)
+				get_inner(rest, token, res, proxy)
 		end
 	end
 
@@ -146,12 +146,12 @@ defmodule Exvk.Users do
 	#	search
 	#
 
-	def search(fields \\ %{}, token \\ nil) do # user can re-define fields
+	def search(fields \\ %{}, token \\ nil, proxy \\ nil) do # user can re-define fields
 		case check_params(fields) do
 			{:error, error} -> {:error, error}
 			params = %{} -> Map.merge(params, %{offset: 0, count: 1000, access_token: token})
 								|> filter_nil
-									|> search_inner([])
+									|> search_inner([], proxy)
 		end
 	end
 	defp check_params(fields) do
@@ -171,16 +171,16 @@ defmodule Exvk.Users do
 					end
 				end) 
 	end
-	defp search_inner(fields, res) do
+	defp search_inner(fields, res, proxy) do
 		Exvk.timeout
-		case http_get(fields, "users.search") do
+		case http_get(fields, "users.search", get_opts(proxy)) do
 			%{response: []} -> Enum.uniq(res)
 			%{response: [int|rest]} when is_integer(int) -> 
 				uids = Enum.map(rest, fn(%{uid: uid}) -> uid end)
 				case Enum.all?(uids, &(Enum.member?(res, &1))) do
 					true -> Enum.uniq(res)
 					false -> Map.update!(fields, :offset, &(&1+1000))
-							 |> search_inner(uids++res)
+							 |> search_inner(uids++res, proxy)
 				end
 			error -> {:error, "#{__MODULE__} : unparsable ans from vk #{inspect error}, ignore"}
 		end
