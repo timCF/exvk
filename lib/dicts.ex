@@ -5,9 +5,9 @@ defmodule Exvk.Dicts do
 		new_stamp = Exutils.makestamp
 		case Exvk.Tinca.get(:updated, :exvk_dicts) do
 			some when ((some + @timeout) < new_stamp) ->
-				Exvk.Dicts.Countries.update
-				Exvk.Dicts.Cities.update
-				Exvk.Tinca.put(Exutils.makestamp, :updated, :exvk_dicts) |> IO.puts
+				#Exvk.Dicts.Countries.update
+				#Exvk.Dicts.Cities.update
+				Exvk.Tinca.put(Exutils.makestamp, :updated, :exvk_dicts)
 			_ -> :ok
 		end
 	end
