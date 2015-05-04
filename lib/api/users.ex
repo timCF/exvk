@@ -126,6 +126,7 @@ defmodule Exvk.Users do
 
 
 	defp vals_to_string(enum), do: Enum.reduce(enum,%{},fn({k,v}, res) -> Map.put(res, k, to_string(v)) end)
+	defp maybe_make_it_flat([]), do: %{}
 	defp maybe_make_it_flat(lst) when is_list(lst) do
 		case Enum.all?(lst, &is_map/1) do
 			false -> %{}
