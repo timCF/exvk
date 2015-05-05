@@ -28,22 +28,22 @@ defmodule Exvk.Users do
 				|> filter_nil
 					|> http_get("users.get", get_opts(proxy)) do
 			%{response: lst} when is_list(lst) -> 
-				get_inner(rest, token, Enum.map(lst, &(decode_user(&1, token))) ++ res, proxy)
+				get_inner(rest, token, Enum.map(lst, &(decode_user(&1, token, proxy))) ++ res, proxy)
 			error -> 
 				Logger.error "#{__MODULE__} : unparsable ans from vk #{inspect error}, ignore"
 				get_inner(rest, token, res, proxy)
 		end
 	end
 
-	defp decode_user(map = %{uid: uid, first_name: _, last_name: _}, token) when is_integer(uid) do 
+	defp decode_user(map = %{uid: uid, first_name: _, last_name: _}, token, proxy) when is_integer(uid) do 
 		Map.put(map, :friends,
-			case Exvk.Friends.get(uid, token) do
+			case Exvk.Friends.get(uid, token, proxy) do
 				{:error, error} ->  Logger.error inspect(error)
 									[]
 				friends when is_list(friends) -> friends
 			end)
 		|> Map.put(:groups, 
-			case Exvk.Groups.get(uid, token) do
+			case Exvk.Groups.get(uid, token, proxy) do
 				{:error, error} ->  Logger.error inspect(error)
 									[]
 				groups when is_list(groups) -> groups
@@ -66,7 +66,7 @@ defmodule Exvk.Users do
 		|> update_some_maps_to_flat
 		|> make_user_struct
 	end
-	defp decode_user(some, _) do
+	defp decode_user(some, _, _) do
 		Logger.error "#{__MODULE__} : unexpected user struct #{inspect some}"
 		:failed
 	end

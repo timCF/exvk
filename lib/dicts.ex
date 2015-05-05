@@ -1,6 +1,7 @@
 defmodule Exvk.Dicts do
-	
+	require Logger
 	@timeout :timer.hours(72)
+
 	def maybe_update do
 		new_stamp = Exutils.makestamp
 		case Exvk.Tinca.get(:updated, :exvk_dicts) do
@@ -22,7 +23,7 @@ defmodule Exvk.Dicts do
 						true -> Enum.each(lst++res, fn(%{cid: id, title: title}) -> Exvk.Tinca.put(title, id, :exvk_countries) end)
 						false -> update(lst++res, offset+1000)
 					end
-				error -> {:error, error}
+				error -> Logger.error "#{__MODULE__} error #{inspect error}"
 			end
 		end
 		def get(id), do: Exvk.Tinca.get(id, :exvk_countries)
@@ -45,7 +46,7 @@ defmodule Exvk.Dicts do
 						true -> Enum.each(lst++res, fn(%{cid: id, title: title}) -> Exvk.Tinca.put(title, "#{coutry}:#{id}", :exvk_cities) end)
 						false -> update_proc(coutry, lst++res, offset+1000)
 					end
-				error -> {:error, error}
+				error -> Logger.error "#{__MODULE__} error #{inspect error}"
 			end
 		end
 		def get(coutry, city), do: Exvk.Tinca.get("#{coutry}:#{city}", :exvk_cities)
