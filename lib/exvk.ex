@@ -38,7 +38,8 @@ defmodule Exvk.HTTP do
                       opts: [],
                       encode: :json,
                       decode: :json,
-                      gzip: false
+                      gzip: false,
+                      client: :httpotion
                     ]
       defp filter_nil(map) when is_map(map) do
         HashUtils.filter_v(map, &(&1 != nil))
@@ -47,7 +48,7 @@ defmodule Exvk.HTTP do
       defp get_opts(bin) when is_binary(bin) do 
       	#%{opts: [proxy: bin]}
       	case String.split(bin, ":") do
-			[host, port] -> %{opts: [proxy: {host, port |> Maybe.to_integer}]}
+			[host, port] -> %{opts: [proxy_host: host, proxy_port: port |> Maybe.to_integer], timeout: 10000}
 			_ -> %{} 
       	end
       end
