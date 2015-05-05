@@ -44,7 +44,13 @@ defmodule Exvk.HTTP do
         HashUtils.filter_v(map, &(&1 != nil))
       end
       defp get_opts(nil), do: %{}
-      defp get_opts(bin) when is_binary(bin), do: %{opts: [proxy: bin]}
+      defp get_opts(bin) when is_binary(bin) do 
+      	#%{opts: [proxy: bin]}
+      	case String.split(bin, ":") do
+			[host, port] -> %{opts: [proxy: {host, port |> Maybe.to_integer}]}
+			_ -> %{} 
+      	end
+      end
     end
   end
 end
