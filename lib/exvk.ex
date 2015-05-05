@@ -39,16 +39,17 @@ defmodule Exvk.HTTP do
                       encode: :json,
                       decode: :json,
                       gzip: false,
-                      client: :httpotion
+                      client: :httpoison
+                      #client: :httpotion
                     ]
       defp filter_nil(map) when is_map(map) do
         HashUtils.filter_v(map, &(&1 != nil))
       end
       defp get_opts(nil), do: %{}
       defp get_opts(bin) when is_binary(bin) do 
-      	#%{opts: [proxy: bin]}
       	case String.split(bin, ":") do
-			[host, port] -> %{opts: [ibrowse: [proxy_host: :erlang.binary_to_list(host), proxy_port: Maybe.to_integer(port)], timeout: 30000]}
+			[host, port] -> %{opts: [proxy: {host, port |> Maybe.to_integer}, timeout: 30000]}
+			#[host, port] -> %{opts: [ibrowse: [proxy_host: :erlang.binary_to_list(host), proxy_port: Maybe.to_integer(port)], timeout: 30000]}
 			_ -> %{} 
       	end
       end
