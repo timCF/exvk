@@ -48,7 +48,7 @@ defmodule Exvk.HTTP do
       defp get_opts(bin) when is_binary(bin) do 
       	#%{opts: [proxy: bin]}
       	case String.split(bin, ":") do
-			[host, port] -> %{opts: [proxy_host: host, proxy_port: port |> Maybe.to_integer], timeout: 10000}
+			[host, port] -> %{opts: [ibrowse: [proxy_host: host, proxy_port: port |> Maybe.to_integer], timeout: 10000]}
 			_ -> %{} 
       	end
       end
