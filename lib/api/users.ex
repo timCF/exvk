@@ -1,9 +1,11 @@
 defmodule Exvk.Users do
+	use Silverb, [
+					{"@keys", %Exvk.User{} |> HashUtils.keys |> Enum.reduce(HashSet.new, &(HashSet.put(&2,&1)))}
+				 ]
 	use Exvk.HTTP
 	require Logger
-
+	
 	@additional_fields "sex,bdate,city,country,photo_50,photo_100,photo_200_orig,photo_200,photo_400_orig,photo_max,photo_max_orig,photo_id,online,online_mobile,domain,has_mobile,contacts,connections,site,education,universities,schools,can_post,can_see_all_posts,can_see_audio,can_write_private_message,status,last_seen,relation,relatives,counters,screen_name,maiden_name,timezone,occupation,activities,interests,music,movies,tv,books,games,about,quotes,personal,friends_status"
-	@keys %Exvk.User{} |> HashUtils.keys |> Enum.reduce(HashSet.new, &(HashSet.put(&2,&1)))
 	defp make_user_struct(map = %{}) do
 		Map.keys(map) 
 		|> Stream.filter(&(HashSet.member?(@keys,&1)))

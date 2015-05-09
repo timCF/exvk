@@ -1,6 +1,6 @@
 defmodule Exvk.Friends do
+	use Silverb
 	use Exvk.HTTP
-
 	def get(uid, token \\ nil, proxy \\ nil) when is_integer(uid) do
 		Exvk.timeout
 		case %{user_id: uid, access_token: token}

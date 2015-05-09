@@ -1,5 +1,7 @@
 %{"bear": {:git, "git://github.com/boundary/bear.git", "119234548783af19b8ec75c879c5062676b92571", [tag: "0.8.2"]},
+  "conform": {:hex, :conform, "0.13.0"},
   "exactor": {:git, "git://github.com/sasa1977/exactor.git", "0467f8100bc735405d597dbf94996195eb31e0b6", [tag: "0467f8100bc735405d597dbf94996195eb31e0b6"]},
+  "exrm": {:git, "git://github.com/bitwalker/exrm.git", "bebc97c7707b6019a2790132b16653418f25afdc", []},
   "extask": {:git, "git://github.com/timCF/extask.git", "691cc1a515750bead8b81ed6c13cddbcf115d754", []},
   "exutils": {:git, "git://github.com/timCF/exutils.git", "92d02759daf4b3311a29766342d1d445045e6c83", []},
   "folsom": {:git, "git://github.com/boundary/folsom.git", "f660becd1f71b57df67e53c20df09a02f42319ab", []},
@@ -13,5 +15,6 @@
   "jazz": {:git, "git://github.com/meh/jazz.git", "49f335492aca5516495199dd81dd18b845ebaa69", []},
   "maybe": {:git, "git://github.com/timCF/maybe.git", "0c500e3abb3d9b82b65915bf7f388ccf004bb790", []},
   "meck": {:git, "git://github.com/eproxus/meck", "dde759050eff19a1a80fd854d7375174b191665d", [tag: "0.8.2"]},
+  "silverb": {:git, "git://github.com/timCF/silverb.git", "981428205aaccd9badbd9bfe8e17cc3fc4551c89", []},
   "ssl_verify_hostname": {:hex, :ssl_verify_hostname, "1.0.1"},
   "tinca": {:git, "git://github.com/timCF/tinca.git", "b269d5e248bc070956456e0ff9331fefa73a7b69", []}}

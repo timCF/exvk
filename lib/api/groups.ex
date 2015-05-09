@@ -1,4 +1,5 @@
 defmodule Exvk.Groups do
+	use Silverb
 	use Exvk.HTTP
 	require Logger
 

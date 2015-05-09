@@ -1,4 +1,5 @@
 defmodule Exvk do
+  use Silverb
   use Application
   use Exvk.Structs
   use Tinca,	[
@@ -31,6 +32,7 @@ defmodule Exvk do
 end
 
 defmodule Exvk.HTTP do
+  use Silverb
   defmacro __using__(_) do
     quote do
       use Httphex,  [

@@ -20,7 +20,8 @@ defmodule Exvk.Mixfile do
                       :tinca,
                       :exutils,
                       :hashex,
-                      :maybe
+                      :maybe,
+                      :silverb
                     ],
      mod: {Exvk, []}]
   end
@@ -41,7 +42,8 @@ defmodule Exvk.Mixfile do
       {:tinca, github: "timCF/tinca"},
       {:exutils, github: "timCF/exutils"},
       {:hashex, github: "timCF/hashex"},
-      {:maybe, github: "timCF/maybe"}
+      {:maybe, github: "timCF/maybe"},
+      {:silverb, github: "timCF/silverb"}
     ]
   end
 end

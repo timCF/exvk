@@ -1,6 +1,8 @@
 defmodule Exvk.Dicts do
+	use Silverb, [
+					{"@timeout", :timer.hours(72)}
+				 ]
 	require Logger
-	@timeout :timer.hours(72)
 
 	def maybe_update do
 		new_stamp = Exutils.makestamp
@@ -14,6 +16,7 @@ defmodule Exvk.Dicts do
 	end
 
 	defmodule Countries do
+		use Silverb
 		use Exvk.HTTP
 		def update(res \\ [], offset \\ 0) do
 			:timer.sleep(333)
@@ -33,6 +36,7 @@ defmodule Exvk.Dicts do
 	#	this function is long
 	#
 	defmodule Cities do
+		use Silverb
 		use Exvk.HTTP
 		def update do
 			Exvk.Tinca.keys(:exvk_countries)
