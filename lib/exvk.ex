@@ -26,7 +26,7 @@ defmodule Exvk do
 
   def timeout do 
   	Exvk.Dicts.maybe_update
-  	:timer.sleep(333)
+  	:timer.sleep(400)
   end
 
 end
