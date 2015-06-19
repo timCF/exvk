@@ -7,12 +7,12 @@ defmodule Exvk.Groups do
 	defp getMembers_inner(fields, res, proxy) do
 		Exvk.timeout
 		case http_get(fields, ["groups.getMembers"], get_opts(proxy)) do
-			%{response: %{users: []}} -> Enum.uniq(res)
+			%{response: %{users: []}} -> res
 			%{response: %{users: lst}} when is_list(lst) -> 
 				case Enum.all?(lst, &is_integer/1) do
 					true -> 
 						case Enum.all?(lst, &(Enum.member?(res, &1))) do
-							true ->  Enum.uniq(res)
+							true ->  res
 							false -> Map.update!(fields, :offset, &(&1+1000)) 
 									 |> getMembers_inner(lst++res, proxy)
 						end
@@ -27,12 +27,12 @@ defmodule Exvk.Groups do
 	defp get_proc(q, res, proxy) do
 		Exvk.timeout
 		case http_get(q, ["groups.get"], get_opts(proxy)) do
-			%{response: []} -> Enum.uniq(res)
+			%{response: []} -> res
 			%{response: lst} when is_list(lst) -> 
 				case Enum.all?(lst, &is_integer/1) do
 					true ->  
 						case Enum.all?(lst, &(Enum.member?(res, &1))) do
-							true -> Enum.uniq(res)
+							true -> res
 							false -> Map.update!(q, :offset, &(&1+1000)) |> get_proc(lst++res, proxy)
 						end
 					false -> {:error, "Unparsable ans from vk #{inspect lst}"}

@@ -176,11 +176,11 @@ defmodule Exvk.Users do
 	defp search_inner(fields, res, proxy) do
 		Exvk.timeout
 		case http_get(fields, "users.search", get_opts(proxy)) do
-			%{response: []} -> Enum.uniq(res)
+			%{response: []} -> res
 			%{response: [int|rest]} when is_integer(int) -> 
 				uids = Enum.map(rest, fn(%{uid: uid}) -> uid end)
 				case Enum.all?(uids, &(Enum.member?(res, &1))) do
-					true -> Enum.uniq(res)
+					true -> res
 					false -> Map.update!(fields, :offset, &(&1+1000))
 							 |> search_inner(uids++res, proxy)
 				end
