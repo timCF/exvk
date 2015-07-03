@@ -1,6 +1,6 @@
 defmodule Exvk.Dicts do
 	use Silverb, [
-					{"@timeout", :timer.hours(72)}
+					{"@timeout", :timer.hours(500)}
 				 ]
 	require Logger
 
@@ -8,8 +8,8 @@ defmodule Exvk.Dicts do
 		new_stamp = Exutils.makestamp
 		case Exvk.Tinca.get(:updated, :exvk_dicts) do
 			some when ((some + @timeout) < new_stamp) ->
-				#Exvk.Dicts.Countries.update
-				#Exvk.Dicts.Cities.update
+				Exvk.Dicts.Countries.update
+				Exvk.Dicts.Cities.update
 				Exvk.Tinca.put(Exutils.makestamp, :updated, :exvk_dicts)
 			_ -> :ok
 		end
@@ -23,7 +23,10 @@ defmodule Exvk.Dicts do
 			case http_get(%{need_all: 1, offset: offset, count: 1000}, ["database.getCountries"]) do
 				%{response: lst} when is_list(lst) -> 
 					case Enum.all?(lst, &(Enum.member?(res, &1))) do
-						true -> Enum.each(lst++res, fn(%{cid: id, title: title}) -> Exvk.Tinca.put(title, id, :exvk_countries) end)
+						true -> Enum.each(lst++res, fn(%{cid: id, title: title}) -> 
+									IO.inspect {id, title}
+									Exvk.Tinca.put(title, id, :exvk_countries) 
+								end)
 						false -> update(lst++res, offset+1000)
 					end
 				error -> Logger.error "#{__MODULE__} error #{inspect error}"
@@ -47,7 +50,10 @@ defmodule Exvk.Dicts do
 			case http_get(%{need_all: 1, country_id: coutry, offset: offset, count: 1000}, ["database.getCities"]) do
 				%{response: lst} when is_list(lst) ->
 					case Enum.all?(lst, &(Enum.member?(res, &1))) do
-						true -> Enum.each(lst++res, fn(%{cid: id, title: title}) -> Exvk.Tinca.put(title, "#{coutry}:#{id}", :exvk_cities) end)
+						true -> Enum.each(lst++res, fn(%{cid: id, title: title}) -> 
+									IO.inspect {id, title}
+									Exvk.Tinca.put(title, "#{coutry}:#{id}", :exvk_cities) 
+								end)
 						false -> update_proc(coutry, lst++res, offset+1000)
 					end
 				error -> Logger.error "#{__MODULE__} error #{inspect error}"

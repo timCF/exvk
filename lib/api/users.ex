@@ -15,40 +15,46 @@ defmodule Exvk.Users do
 	#
 	#	get
 	#
-	
-	def get(users, token \\ nil, proxy \\ nil) when is_list(users) do
+
+	def get(users, opts \\ [:friends, :groups], token \\ nil, proxy \\ nil) when is_list(users) do
 		case Enum.all?(users, &is_integer/1) do
-			true -> get_inner(users, token, [], proxy)
+			true -> get_inner(users, opts, token, [], proxy)
 			false -> {:error, "Expected list of ints, got #{inspect users}"}
 		end
 	end
-	defp get_inner([], _token, res, _proxy), do: Enum.filter(res, &(&1 != :failed))
-	defp get_inner(users, token, res, proxy) do
+	defp get_inner([], _opts, _token, res, _proxy), do: Enum.filter(res, &(&1 != :failed))
+	defp get_inner(users, opts, token, res, proxy) do
 		{todo, rest} = Enum.split(users, 1000)
 		Exvk.timeout
 		case %{user_ids: Enum.join(todo, ","), fields: @additional_fields, access_token: token}
 				|> filter_nil
 					|> http_get("users.get", get_opts(proxy)) do
 			%{response: lst} when is_list(lst) -> 
-				get_inner(rest, token, Enum.map(lst, &(decode_user(&1, token, proxy))) ++ res, proxy)
+				get_inner(rest, opts, token, Enum.map(lst, &(decode_user(&1, opts, token, proxy))) ++ res, proxy)
 			error -> 
 				Logger.error "#{__MODULE__} : unparsable ans from vk #{inspect error}, ignore"
-				get_inner(rest, token, res, proxy)
+				get_inner(rest, opts, token, res, proxy)
 		end
 	end
 
-	defp decode_user(map = %{uid: uid, first_name: _, last_name: _}, token, proxy) when is_integer(uid) do 
+	defp decode_user(map = %{uid: uid, first_name: _, last_name: _}, opts, token, proxy) when is_integer(uid) do 
 		Map.put(map, :friends,
-			case Exvk.Friends.get(uid, token, proxy) do
-				{:error, error} ->  Logger.error inspect(error)
-									[]
-				friends when is_list(friends) -> friends
+			case Enum.member?(opts, :friends) do
+				false -> []
+				true -> case Exvk.Friends.get(uid, token, proxy) do
+							{:error, error} ->  Logger.error inspect(error)
+												[]
+							friends when is_list(friends) -> friends
+						end
 			end)
 		|> Map.put(:groups, 
-			case Exvk.Groups.get(uid, token, proxy) do
-				{:error, error} ->  Logger.error inspect(error)
-									[]
-				groups when is_list(groups) -> groups
+			case Enum.member?(opts, :groups) do
+				false -> []
+				true -> case Exvk.Groups.get(uid, token, proxy) do
+							{:error, error} ->  Logger.error inspect(error)
+												[]
+							groups when is_list(groups) -> groups
+						end
 			end)
 		|> Map.update(:counters, %{}, &vals_to_string/1)
 		|> add_country_and_city
@@ -68,7 +74,7 @@ defmodule Exvk.Users do
 		|> update_some_maps_to_flat
 		|> make_user_struct
 	end
-	defp decode_user(some, _, _) do
+	defp decode_user(some, _, _, _) do
 		Logger.error "#{__MODULE__} : unexpected user struct #{inspect some}"
 		:failed
 	end
