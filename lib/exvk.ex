@@ -24,8 +24,8 @@ defmodule Exvk do
     Supervisor.start_link(children, opts)
   end
 
-  def timeout do 
-  	Exvk.Dicts.maybe_update
+  def timeout do
+  	#Exvk.Dicts.maybe_update
   	:timer.sleep(400)
   end
 
@@ -36,23 +36,22 @@ defmodule Exvk.HTTP do
   defmacro __using__(_) do
     quote do
       use Httphex,  [
-                      host: "https://api.vk.com/method", 
+                      host: "https://api.vk.com/method",
                       opts: [],
                       encode: :json,
                       decode: :json,
                       gzip: false,
-                      client: :httpoison
-                      #client: :httpotion
+                      client: :httpoison,
+					  timeout: 60000
                     ]
       defp filter_nil(map) when is_map(map) do
         HashUtils.filter_v(map, &(&1 != nil))
       end
       defp get_opts(nil), do: %{}
-      defp get_opts(bin) when is_binary(bin) do 
+      defp get_opts(bin) when is_binary(bin) do
       	case String.split(bin, ":") do
 			[host, port] -> %{opts: [proxy: {host, port |> Maybe.to_integer}, timeout: 30000]}
-			#[host, port] -> %{opts: [ibrowse: [proxy_host: :erlang.binary_to_list(host), proxy_port: Maybe.to_integer(port)], timeout: 30000]}
-			_ -> %{} 
+			_ -> %{}
       	end
       end
     end

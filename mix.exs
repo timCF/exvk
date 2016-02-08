@@ -4,7 +4,7 @@ defmodule Exvk.Mixfile do
   def project do
     [app: :exvk,
      version: "0.0.1",
-     elixir: "~> 1.0.0",
+     #elixir: "~> 1.0.0",
      deps: deps]
   end
 
