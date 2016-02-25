@@ -32,7 +32,9 @@ defmodule Exvk do
 end
 
 defmodule Exvk.HTTP do
-  use Silverb
+  use Silverb, [
+	  {"@ttl", (res = Application.get_env(:exvk, :http_timeout); true = (is_integer(res) and (res > 0)); res)}
+  ]
   defmacro __using__(_) do
     quote do
       use Httphex,  [
@@ -42,7 +44,7 @@ defmodule Exvk.HTTP do
                       decode: :json,
                       gzip: false,
                       client: :httpoison,
-					  timeout: 60000
+					  timeout: unquote(@ttl)
                     ]
       defp filter_nil(map) when is_map(map) do
         HashUtils.filter_v(map, &(&1 != nil))
@@ -50,7 +52,7 @@ defmodule Exvk.HTTP do
       defp get_opts(nil), do: %{}
       defp get_opts(bin) when is_binary(bin) do
       	case String.split(bin, ":") do
-			[host, port] -> %{opts: [proxy: {host, port |> Maybe.to_integer}, timeout: 30000]}
+			[host, port] -> %{opts: [proxy: {host, port |> Maybe.to_integer}, timeout: unquote(@ttl)]}
 			_ -> %{}
       	end
       end
