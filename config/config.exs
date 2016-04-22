@@ -24,4 +24,5 @@ use Mix.Config
 #     import_config "#{Mix.env}.exs"
 
 config :exvk,
-	http_timeout: 20000
+	http_timeout: 20000,
+	http_upload: 60000

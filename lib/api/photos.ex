@@ -1,5 +1,7 @@
 defmodule Exvk.Photos do
-	use Silverb
+	use Silverb, [
+		{"@http_upload", (res = Application.get_env(:exvk, :http_upload); true = (is_integer(res) and (res > 0)); res)}
+	]
 	use Exvk.HTTP
 	def get(%{gid: gid, aid: aid}, token, proxy \\ nil) do
 		Exvk.timeout
@@ -20,18 +22,18 @@ defmodule Exvk.Photos do
 		case %{gid: gid, aid: aid, access_token: token} |> http_get("photos.getUploadServer", get_opts(proxy)) do
 			%{response: %{upload_url: upload_url}} when is_binary(upload_url) ->
 				Exvk.timeout
-				case {:multipart, [{:file, path}]} |> http_post( [], get_opts(proxy) |> Map.merge(%{host: upload_url, headers: [{"Content-Type","multipart/form-data"}], encode: :none, decode: :json}) ) do
+				case {:multipart, [{:file, path}]} |> http_post( [], get_opts(proxy) |> Map.merge(%{host: upload_url, headers: [{"Content-Type","multipart/form-data"}], encode: :none, decode: :json, timeout: @http_upload}) ) do
 					%{server: server, aid: aid, gid: gid, hash: hash, photos_list: photos_list} ->
 						Exvk.timeout
 						case %{server: server, aid: aid, gid: gid, hash: hash, photos_list: photos_list, access_token: token, caption: caption} |> http_get("photos.save") do
 							%{response: [_|_]} -> :ok
-							error -> {:error, error}
+							error -> {:error, "saving image photos.save error #{inspect error}"}
 						end
 					error ->
-						{:error, error}
+						{:error, "uploading image error #{inspect error}"}
 				end
 			error ->
-				{:error, error}
+				{:error, "getting upload link photos.getUploadServer error #{inspect error}"}
 		end
 	end
 end
